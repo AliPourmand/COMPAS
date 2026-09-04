@@ -2148,7 +2148,7 @@ double BaseBinaryStar::CalculateAblationOrbitalAngularMomentumLossGinzburgQuatae
             2.0 / 3.0
         )
         * PPOW(
-            (2.0 * M_PI * p_DeltaMassAblation)
+            (2.0 * M_PI * p_MdotAblation)
             / p_OrbitalPeriod,
             1.0 / 3.0
         );
@@ -2173,8 +2173,23 @@ void BaseBinaryStar::CalculateAblationMassLoss(const double p_Dt) {
     if (!HasOneOf({ STELLAR_TYPE::NEUTRON_STAR })) return;
 
     // Identify the neutron star and its companion
+
     BinaryConstituentStar* neutronStar;
     BinaryConstituentStar* companion;
+
+    double NSMagneticField =
+        boost::get<double>(
+            neutronStar->StellarPropertyValue(
+                STAR_PROPERTY::PULSAR_MAGNETIC_FIELD
+            )
+        );
+
+    double NSSpinPeriod =
+            boost::get<double>(
+                neutronStar->StellarPropertyValue(
+                    STAR_PROPERTY::PULSAR_SPIN_PERIOD
+                )
+            );
 
     if (m_Star1->IsOneOf({ STELLAR_TYPE::NEUTRON_STAR })) {
 
@@ -2189,9 +2204,9 @@ void BaseBinaryStar::CalculateAblationMassLoss(const double p_Dt) {
 
     }
 
-    // No ablation for DNS or NS-BH systems
+    // No ablation for Massless Remnants or NS-BH systems
     if (companion->IsOneOf({
-        STELLAR_TYPE::NEUTRON_STAR,
+        STELLAR_TYPE::MASSLESS_REMNANT,
         STELLAR_TYPE::BLACK_HOLE
     })) return;
     
@@ -2211,8 +2226,8 @@ void BaseBinaryStar::CalculateAblationMassLoss(const double p_Dt) {
 		            companion->Mass(),
 		            companion->Radius(),
 		            neutronStar->Radius(),
-		            neutronStar->PulsarMagneticField(),
-		            neutronStar->PulsarSpinPeriod(),
+		            NSMagneticField,
+		            NSSpinPeriod,
 		            m_SemiMajorAxis
 		        );
 

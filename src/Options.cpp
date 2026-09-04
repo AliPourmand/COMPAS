@@ -1142,12 +1142,12 @@ bool Options::AddOptions(OptionValues *p_Options, po::options_description *p_Opt
         // double
         (
             "ablation-efficiency",
-            po::value<double*>(&p_Options->m_AblationEfficiency)->default_value(p_Options->m_AblationEfficiency),
+            po::value<double>(&p_Options->m_AblationEfficiency)->default_value(p_Options->m_AblationEfficiency),
             ("Ablation efficiency (default = " + std::to_string(p_Options->m_AblationEfficiency) + ")").c_str()
         )
         (
             "ablation-companion-magnetic-field",
-            po::value<double*>(&p_Options->m_AblationCompanionMagneticField)->default_value(p_Options->m_AblationCompanionMagneticField),
+            po::value<double>(&p_Options->m_AblationCompanionMagneticField)->default_value(p_Options->m_AblationCompanionMagneticField),
             ("Companion magnetic field for ablation in G (default = " + std::to_string(p_Options->m_AblationCompanionMagneticField) + ")").c_str()
         )
         (
