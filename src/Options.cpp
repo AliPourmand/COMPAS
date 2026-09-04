@@ -599,6 +599,10 @@ void Options::OptionValues::Initialise() {
     m_NeutronStarEquationOfState.type                               = NS_EOS::SSE;
     m_NeutronStarEquationOfState.typeString                         = NS_EOS_LABEL.at(m_NeutronStarEquationOfState.type);
 
+    // Pulsar ablation
+
+    m_AblationEfficiency                  = 0.1;
+    m_AblationCompanionMagneticField      = 70.0;
 
     // Pulsar birth magnetic field distribution
     m_PulsarBirthMagneticFieldDistribution.type                     = PULSAR_BIRTH_MAGNETIC_FIELD_DISTRIBUTION::LOGNORMAL;
@@ -1136,7 +1140,16 @@ bool Options::AddOptions(OptionValues *p_Options, po::options_description *p_Opt
 
 
         // double
-
+        (
+            "ablation-efficiency",
+            po::value<double*>(&p_Options->m_AblationEfficiency)->default_value(p_Options->m_AblationEfficiency),
+            ("Ablation efficiency (default = " + std::to_string(p_Options->m_AblationEfficiency) + ")").c_str()
+        )
+        (
+            "ablation-companion-magnetic-field",
+            po::value<double*>(&p_Options->m_AblationCompanionMagneticField)->default_value(p_Options->m_AblationCompanionMagneticField),
+            ("Companion magnetic field for ablation in G (default = " + std::to_string(p_Options->m_AblationCompanionMagneticField) + ")").c_str()
+        )
         (
             "common-envelope-alpha",                                       
             po::value<double>(&p_Options->m_CommonEnvelopeAlpha)->default_value(p_Options->m_CommonEnvelopeAlpha),                                                                                
@@ -1798,7 +1811,17 @@ bool Options::AddOptions(OptionValues *p_Options, po::options_description *p_Opt
 
 
         // string options - alphabetically
-
+        
+        (
+            "ablation-mass-loss-prescription",
+            po::value<std::string>(&p_Options->m_AblationMassLossPrescription.typeString)->default_value(p_Options->m_AblationMassLossPrescription.typeString),
+            ("Ablation mass-loss prescription (" + AllowedOptionValuesFormatted("ablation-mass-loss-prescription") + ", default = '" + p_Options->m_AblationMassLossPrescription.typeString + "')").c_str()
+        )
+        (
+            "ablation-angular-momentum-loss-prescription",
+            po::value<std::string>(&p_Options->m_AblationAngularMomentumLossPrescription.typeString)->default_value(p_Options->m_AblationAngularMomentumLossPrescription.typeString),
+            ("Ablation angular-momentum-loss prescription (" + AllowedOptionValuesFormatted("ablation-angular-momentum-loss-prescription") + ", default = '" + p_Options->m_AblationAngularMomentumLossPrescription.typeString + "')").c_str()
+        )
         (
             "add-options-to-sysparms",                                            
             po::value<std::string>(&p_Options->m_AddOptionsToSysParms.typeString)->default_value(p_Options->m_AddOptionsToSysParms.typeString),                                                                              
@@ -2336,6 +2359,16 @@ std::string Options::OptionValues::CheckAndSetOptions() {
         m_FixedRandomSeed  = !DEFAULTED("random-seed");                                                                             // use random seed if it is provided by the user
         m_UseFixedUK       = !DEFAULTED("fix-dimensionless-kick-magnitude") && (m_FixedUK >= 0.0);                                  // determine if user supplied a valid kick magnitude
 
+        if (!DEFAULTED("ablation-mass-loss-prescription")) {                                                                        // ablation mass loss prescription
+            std::tie(found, m_AblationMassLossPrescription.type) = utils::GetMapKey(m_AblationMassLossPrescription.typeString, ABLATION_MASS_LOSS_PRESCRIPTION_LABEL, m_AblationMassLossPrescription.type);
+            COMPLAIN_IF(!found, "Unknown Ablation Mass Loss Prescription");
+        }
+
+        if (!DEFAULTED("ablation-angular-momentum-loss-prescription")) {                                                            // ablation angular momentum loss prescription
+            std::tie(found, m_AblationAngularMomentumLossPrescription.type) = utils::GetMapKey(m_AblationAngularMomentumLossPrescription.typeString, ABLATION_ANGULAR_MOMENTUM_LOSS_PRESCRIPTION_LABEL, m_AblationAngularMomentumLossPrescription.type);
+            COMPLAIN_IF(!found, "Unknown Ablation Angular Momentum Loss Prescription");
+        }
+
         if (!DEFAULTED("add-options-to-sysparms")) {                                                                                // add program options to BSE/SSE sysparms
             std::tie(found, m_AddOptionsToSysParms.type) = utils::GetMapKey(m_AddOptionsToSysParms.typeString, ADD_OPTIONS_TO_SYSPARMS_LABEL, m_AddOptionsToSysParms.type);
             COMPLAIN_IF(!found, "Unknown Add Options to SysParms Option");
@@ -2813,6 +2846,8 @@ STR_VECTOR Options::AllowedOptionValues(const std::string p_OptionString) {
 
     switch (_(p_OptionString.c_str())) {    // which option?
 
+        case _("ablation-mass-loss-prescription")                   :POPULATE_RET(ABLATION_MASS_LOSS_PRESCRIPTION_LABEL);           break;
+        case _("ablation-angular-momentum-loss-prescription")       :POPULATE_RET(ABLATION_ANGULAR_MOMENTUM_LOSS_PRESCRIPTION_LABEL);  break;
         case _("add-options-to-sysparms")                           : POPULATE_RET(ADD_OPTIONS_TO_SYSPARMS_LABEL);                  break;
         case _("black-hole-kicks-mode")                             : POPULATE_RET(BLACK_HOLE_KICKS_MODE_LABEL);                    break;
         case _("case-BB-stability-prescription")                    : POPULATE_RET(CASE_BB_STABILITY_PRESCRIPTION_LABEL);           break;

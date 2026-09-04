@@ -1041,6 +1041,16 @@ public:
             ENUM_OPT<WR_MASS_LOSS_PRESCRIPTION>                 m_WRMassLossPrescription;                                       // Which WR mass loss prescription to use for WR       
 
 
+
+            // Pulsar ablation
+
+            ENUM_OPT<ABLATION_MASS_LOSS_PRESCRIPTION>                m_AblationMassLossPrescription;                       // Which ablation mass-loss prescription
+
+            ENUM_OPT<ABLATION_ANGULAR_MOMENTUM_LOSS_PRESCRIPTION>    m_AblationAngularMomentumLossPrescription;            // Which ablation angular-momentum-loss prescription
+
+            double m_AblationEfficiency;                              // Ablation efficiency
+            double m_AblationCompanionMagneticField;                  // Companion magnetic field in G
+
             // Mass transfer options
             bool                                                m_UseMassTransfer;                                              // Whether to use mass transfer (default = true)
 	        bool                                                m_CirculariseBinaryDuringMassTransfer;						    // Whether to circularise binary when it starts (default = true)
@@ -1638,6 +1648,11 @@ public:
     unsigned long int                           MaxNumberOfTimestepIterations() const                                   { return OPT_VALUE("maximum-number-timestep-iterations", m_MaxNumberOfTimestepIterations, true); }
     double                                      MaximumDonorMass() const                                                { return OPT_VALUE("maximum-mass-donor-nandez-ivanova", m_MaximumMassDonorNandezIvanova, true); }
     double                                      MCBUR1() const                                                          { return OPT_VALUE("mcbur1", m_mCBUR1, true); }
+
+
+    ABLATION_MASS_LOSS_PRESCRIPTION             AblationMassLossPrescription() const                                    {return *OPT_VALUE("ablation-mass-loss-prescription", m_AblationMassLossPrescription.type, true); }
+
+    ABLATION_ANGULAR_MOMENTUM_LOSS_PRESCRIPTION AblationAngularMomentumLossPrescription() const                         {return *OPT_VALUE("ablation-angular-momentum-loss-prescription", m_AblationAngularMomentumLossPrescription.type, true); }
 
     double                                      Metallicity() const                                                     { return OPT_VALUE("metallicity", m_Metallicity, true); }
     METALLICITY_DISTRIBUTION                    MetallicityDistribution() const                                         { return OPT_VALUE("metallicity-distribution", m_MetallicityDistribution.type, true); }

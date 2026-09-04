@@ -76,9 +76,10 @@ public:
 
         m_aMassLossDiff                    = p_Star.m_aMassLossDiff;
 
+        m_aAblationMassLossDiff            = p_Star.m_aAblationMassLossDiff;
         m_MassTransfer                     = p_Star.m_MassTransfer;
-        m_aMassTransferDiff                = p_Star.m_aMassTransferDiff;
-        
+        m_aMassTransferDiff                = p_Star.m_aMassTransferDiff;    
+
         m_MassTransferTimescale            = p_Star.m_MassTransferTimescale;
 
         m_MassTransferTrackerHistory       = p_Star.m_MassTransferTrackerHistory;
@@ -350,6 +351,7 @@ private:
 
     double              m_aMassLossDiff;
 
+    double              m_aAblationMassLossDiff;
     bool                m_MassTransfer;
     double              m_aMassTransferDiff;
     
@@ -464,6 +466,32 @@ private:
     
     
     void    CalculateWindsMassLoss(double p_Dt);
+
+    double CalculateAblationMassLossRateClassic(const double p_CompanionMass,
+                                                const double p_CompanionRadius,
+                                                const double p_NSRadius,
+                                                const double p_NSMagneticField,
+                                                const double p_NSSpinPeriod,
+                                                const double p_SemiMajorAxis) const;
+
+    double CalculateAblationOrbitalAngularMomentumLossKielTaam(const double p_DeltaMassAblation,
+                                                const double p_CompanionMass,
+                                                const double p_TotalMass,
+                                                const double p_SemiMajorAxis,
+                                                const double p_OrbitalPeriod,
+                                                const double p_Eccentricity) const;
+
+    double CalculateAblationOrbitalAngularMomentumLossGinzburgQuataert(const double p_SemiMajorAxis,
+                                                const double p_CompanionMass,
+                                                const double p_NSMass,
+                                                const double p_CompanionMagneticField,
+                                                const double p_CompanionRadius,
+                                                const double p_MdotAblation,
+                                                const double p_OrbitalPeriod,
+                                                const double p_Dt) const;
+
+    void CalculateAblationMassLoss(const double p_Dt);
+
     void    InitialiseMassTransfer();
 
     double  CalculateOrbitalAngularMomentum(const double p_Star1Mass,
