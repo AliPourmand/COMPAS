@@ -481,11 +481,8 @@ private:
                                                 const double p_OrbitalPeriod,
                                                 const double p_Eccentricity) const;
 
-    double CalculateAblationOrbitalAngularMomentumLossGinzburgQuataert(const double p_SemiMajorAxis,
-                                                const double p_CompanionMass,
-                                                const double p_NSMass,
+    double CalculateAblationOrbitalAngularMomentumLossGinzburgQuataert(const double p_CompanionRadius,
                                                 const double p_CompanionMagneticField,
-                                                const double p_CompanionRadius,
                                                 const double p_MdotAblation,
                                                 const double p_OrbitalPeriod,
                                                 const double p_Dt) const;

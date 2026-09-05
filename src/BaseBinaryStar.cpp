@@ -2109,55 +2109,90 @@ double BaseBinaryStar::CalculateAblationOrbitalAngularMomentumLossKielTaam(
     return deltaJOrb;
 }
 
-
 /**
  * Calculate the change in orbital angular momentum due to ablation
  * using the Ginzburg & Quataert prescription.
+ *
+ * The Ginzburg & Quataert (2020) expression is evaluated internally
+ * in SI units. Input quantities retain COMPAS native units and are
+ * converted to SI within this function.
  *
  * Reference:
  * Ginzburg & Quataert (2020), "Black widow evolution:
  * magnetic braking by an ablated wind"
  * https://arxiv.org/pdf/2001.04475
  *
- * @param   [IN]    p_SemiMajorAxis        Binary semi-major axis (AU)
- * @param   [IN]    p_CompanionMass        Companion mass (Msol)
- * @param   [IN]    p_NS Mass              Neutron star mass (Msol)
- * @param   [IN]    p_CompanionMagneticField  Companion magnetic field
- * @param   [IN]    p_CompanionRadius      Companion radius (Rsol)
- * @param   [IN]    p_MdotAblation        Ablation mass-loss rate (Msol/yr)
- * @param   [IN]    p_OrbitalPeriod        Orbital period
- * @param   [IN]    p_Dt                  Timestep (Myr)
- * @return                                 Change in orbital angular momentum
+ * @param   [IN]    p_CompanionRadius
+ *                         Companion radius (Rsol)
+ * @param   [IN]    p_CompanionMagneticField
+ *                         Companion surface magnetic field (G)
+ * @param   [IN]    p_MdotAblation
+ *                         Ablation mass-loss rate (Msol/yr)
+ * @param   [IN]    p_OrbitalPeriod
+ *                         Orbital period (yr)
+ * @param   [IN]    p_Dt
+ *                         Timestep (Myr)
+ *
+ * @return          Change in orbital angular momentum
+ *                  (Msol AU^2 yr^-1)
  */
 double BaseBinaryStar::CalculateAblationOrbitalAngularMomentumLossGinzburgQuataert(
-    const double p_SemiMajorAxis,
-    const double p_CompanionMass,
-    const double p_NSMass,
-    const double p_CompanionMagneticField,
     const double p_CompanionRadius,
+    const double p_CompanionMagneticField,
     const double p_MdotAblation,
     const double p_OrbitalPeriod,
     const double p_Dt) const {
 
-    double JdotOrb =
-        -PPOW(p_SemiMajorAxis, 2.0) / 4.0
-        * PPOW(
-            (p_CompanionMass / p_NSMass)
-            * PPOW(p_CompanionMagneticField, 2.0)
-            * p_CompanionRadius,
-            2.0 / 3.0
-        )
-        * PPOW(
-            (2.0 * M_PI * p_MdotAblation)
-            / p_OrbitalPeriod,
+    // Convert input quantities to SI units
+
+    double companionRadiusSI =
+        p_CompanionRadius * RSOL_TO_CM * CM_TO_M;
+
+    double magneticFieldSI =
+        p_CompanionMagneticField * GAUSS_TO_TESLA;
+
+    double mdotSI =
+        p_MdotAblation * MSOL_TO_KG / SECONDS_IN_YEAR;
+
+    double orbitalPeriodSI =
+        p_OrbitalPeriod * SECONDS_IN_YEAR;
+
+    // Ginzburg & Quataert (2020)
+    // Jdot in SI units: kg m^2 s^-2
+
+    double JdotSI =
+        -PPOW(
+            32.0 * PPOW(M_PI, 3.0)
+            * mdotSI
+            * PPOW(companionRadiusSI, 8.0)
+            * PPOW(magneticFieldSI, 4.0)
+            / (
+                PPOW(MU_0, 2.0)
+                * orbitalPeriodSI
+            ),
             1.0 / 3.0
         );
+
+    // Convert Jdot from SI units (kg m^2 s^-2)
+    // to COMPAS units (Msol AU^2 yr^-2)
+
+    double JdotUnitSI =
+        MSOL_TO_KG
+        * PPOW(AU_TO_CM * CM_TO_M, 2.0)
+        / PPOW(SECONDS_IN_YEAR, 2.0);
+
+    double JdotOrb =
+        JdotSI / JdotUnitSI;
+
+    // Convert timestep from Myr to yr and calculate
+    // the change in orbital angular momentum
 
     double deltaJOrb =
         JdotOrb * p_Dt * MYR_TO_YEAR;
 
     return deltaJOrb;
 }
+
 
 /**
  * Calculate mass loss due to ablation for the companion of a neutron star
@@ -2250,11 +2285,9 @@ void BaseBinaryStar::CalculateAblationMassLoss(const double p_Dt) {
     );
 		double deltaJOrb = 0.0;
 		
-		double orbitalPeriod =
-    2.0 * M_PI * std::sqrt(
-        PPOW(m_SemiMajorAxis, 3.0) /
-        (G * (m_Star1->Mass() + m_Star2->Mass()))
-    );
+        double orbitalAngularVelocity = OrbitalAngularVelocity();
+        double orbitalPeriod = 2.0 * M_PI / orbitalAngularVelocity;
+		
     // Calculate orbital response to ablation mass loss
     switch (OPTIONS->AblationAngularMomentumLossPrescription()) {
 
@@ -2275,19 +2308,16 @@ void BaseBinaryStar::CalculateAblationMassLoss(const double p_Dt) {
 
         case ABLATION_ANGULAR_MOMENTUM_LOSS_PRESCRIPTION::GINZBURG_QUATAERT:
 
-            // TODO: calculate orbital angular momentum loss
             deltaJOrb =
                 CalculateAblationOrbitalAngularMomentumLossGinzburgQuataert(
-                    m_SemiMajorAxis,
-                    companion->Mass(),
-                    neutronStar->Mass(),
-                    OPTIONS->AblationCompanionMagneticField(),
                     companion->Radius(),
-						        mDotAblation,
-						        orbitalPeriod,
-						        p_Dt
+                    OPTIONS->AblationCompanionMagneticField(),
+                    mDotAblation,
+                    orbitalPeriod,
+                    p_Dt
                 );
-            break;
+
+            break;    
 
         default:
 
