@@ -2231,6 +2231,14 @@ void BaseBinaryStar::CalculateAblationMassLoss(const double p_Dt) {
         STELLAR_TYPE::BLACK_HOLE
     })) return;
     
+
+    if (!std::isfinite(m_SemiMajorAxis) ||
+        !std::isfinite(m_Eccentricity) ||
+        m_SemiMajorAxis <= 0.0 ||
+        m_Eccentricity > 1.0) {
+        return;
+    }
+
     double NSMagneticField =
         boost::get<double>(
             neutronStar->StellarPropertyValue(
@@ -2257,6 +2265,18 @@ void BaseBinaryStar::CalculateAblationMassLoss(const double p_Dt) {
             return;
         case ABLATION_MASS_LOSS_PRESCRIPTION::CLASSIC:
 
+
+                std::cout << "\n========== ABLATION DEBUG ==========\n";
+                std::cout << "Mcomp = " << companion->Mass() << "\n";
+                std::cout << "Rcomp = " << companion->Radius() << "\n";
+                std::cout << "RNS   = " << neutronStar->Radius() << "\n";
+                std::cout << "B     = " << NSMagneticField << "\n";
+                std::cout << "Pspin = " << NSSpinPeriod << "\n";
+                std::cout << "a     = " << m_SemiMajorAxis << "\n";
+                std::cout << "e     = " << m_Eccentricity << "\n";
+                std::cout << "====================================\n";
+
+
             // TODO: calculate classic ablation mass loss rate
 		        mDotAblation = CalculateAblationMassLossRateClassic(
 		            companion->Mass(),
@@ -2278,6 +2298,9 @@ void BaseBinaryStar::CalculateAblationMassLoss(const double p_Dt) {
 
     // Calculate mass loss over timestep
 		double massLoss = std::max(0.0, mDotAblation * p_Dt * MYR_TO_YEAR);
+    // Ensure that the mass loss does not exceed the companion's current mass: AP: there might be a better way to handle this,
+    //  but for now we just limit the mass loss to the companion's current mass otherwise it will turn into a massless remnant
+        massLoss = std::min(massLoss, companion->Mass());
     // Apply ablation mass loss to the companion
     // Store the companion mass change.
     // ResolveMassChanges() will apply it later.
@@ -2357,16 +2380,10 @@ void BaseBinaryStar::CalculateAblationMassLoss(const double p_Dt) {
     // Derive the new semi-major axis from the prescribed new orbital
     // angular momentum and the new component masses
     double aNew =
-        PPOW(JOrbNew, 2.0)
-        / (
-            G
-            * totalMassNew
-            * (1.0 - PPOW(m_Eccentricity, 2.0))
-        )
-        * PPOW(
-            totalMassNew / (m1New * m2New),
-            2.0
-        );
+    PPOW(JOrbNew, 2.0) /
+    (G_AU_Msol_yr * totalMassNew *
+     (1.0 - PPOW(m_Eccentricity, 2.0))) *
+    PPOW(totalMassNew / (m1New * m2New), 2.0);
 
 
     // Store the orbital change due specifically to ablation
