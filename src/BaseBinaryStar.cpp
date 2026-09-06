@@ -2266,16 +2266,6 @@ void BaseBinaryStar::CalculateAblationMassLoss(const double p_Dt) {
         case ABLATION_MASS_LOSS_PRESCRIPTION::CLASSIC:
 
 
-                std::cout << "\n========== ABLATION DEBUG ==========\n";
-                std::cout << "Mcomp = " << companion->Mass() << "\n";
-                std::cout << "Rcomp = " << companion->Radius() << "\n";
-                std::cout << "RNS   = " << neutronStar->Radius() << "\n";
-                std::cout << "B     = " << NSMagneticField << "\n";
-                std::cout << "Pspin = " << NSSpinPeriod << "\n";
-                std::cout << "a     = " << m_SemiMajorAxis << "\n";
-                std::cout << "e     = " << m_Eccentricity << "\n";
-                std::cout << "====================================\n";
-
 
             // TODO: calculate classic ablation mass loss rate
 		        mDotAblation = CalculateAblationMassLossRateClassic(
@@ -2390,16 +2380,6 @@ void BaseBinaryStar::CalculateAblationMassLoss(const double p_Dt) {
     m_aAblationMassLossDiff = aNew - m_SemiMajorAxis;
 
 
-    std::cout << "ABLATION: "
-          << "Mdot = " << mDotAblation
-          << " massLoss = " << massLoss
-          << " Jold = " << JOrbOld
-          << " dJ = " << deltaJOrb
-          << " Jnew = " << JOrbNew
-          << " aOld = " << m_SemiMajorAxis
-          << " aNew = " << aNew
-          << " e = " << m_Eccentricity
-          << std::endl;
 
 }
 
