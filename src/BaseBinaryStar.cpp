@@ -5,7 +5,7 @@
 
 // gsl includes
 #include <gsl/gsl_poly.h>
-
+#include <iostream>
 
 /* Constructor
  *
@@ -2212,20 +2212,6 @@ void BaseBinaryStar::CalculateAblationMassLoss(const double p_Dt) {
     BinaryConstituentStar* neutronStar;
     BinaryConstituentStar* companion;
 
-    double NSMagneticField =
-        boost::get<double>(
-            neutronStar->StellarPropertyValue(
-                STAR_PROPERTY::PULSAR_MAGNETIC_FIELD
-            )
-        );
-
-    double NSSpinPeriod =
-            boost::get<double>(
-                neutronStar->StellarPropertyValue(
-                    STAR_PROPERTY::PULSAR_SPIN_PERIOD
-                )
-            );
-
     if (m_Star1->IsOneOf({ STELLAR_TYPE::NEUTRON_STAR })) {
 
         neutronStar = m_Star1;
@@ -2245,6 +2231,21 @@ void BaseBinaryStar::CalculateAblationMassLoss(const double p_Dt) {
         STELLAR_TYPE::BLACK_HOLE
     })) return;
     
+    double NSMagneticField =
+        boost::get<double>(
+            neutronStar->StellarPropertyValue(
+                STAR_PROPERTY::PULSAR_MAGNETIC_FIELD
+            )
+        );
+
+    double NSSpinPeriod =
+            boost::get<double>(
+                neutronStar->StellarPropertyValue(
+                    STAR_PROPERTY::PULSAR_SPIN_PERIOD
+                )
+            );
+
+
     // Calculate ablation mass loss
     double mDotAblation = 0.0;
 
@@ -2370,6 +2371,18 @@ void BaseBinaryStar::CalculateAblationMassLoss(const double p_Dt) {
 
     // Store the orbital change due specifically to ablation
     m_aAblationMassLossDiff = aNew - m_SemiMajorAxis;
+
+
+    std::cout << "ABLATION: "
+          << "Mdot = " << mDotAblation
+          << " massLoss = " << massLoss
+          << " Jold = " << JOrbOld
+          << " dJ = " << deltaJOrb
+          << " Jnew = " << JOrbNew
+          << " aOld = " << m_SemiMajorAxis
+          << " aNew = " << aNew
+          << " e = " << m_Eccentricity
+          << std::endl;
 
 }
 
@@ -3614,6 +3627,10 @@ void BaseBinaryStar::EvaluateBinary(const double p_Dt) {
     CalculateWindsMassLoss(p_Dt);                                                                                       // calculate mass loss dues to winds
 
     (void)PrintDetailedOutput(m_Id, BSE_DETAILED_RECORD_TYPE::POST_WINDS);                                              // print (log) detailed output
+
+    CalculateAblationMassLoss(p_Dt);                                                                                    // calculate mass loss dues to ablation      
+
+    (void)PrintDetailedOutput(m_Id, BSE_DETAILED_RECORD_TYPE::POST_ABLATION);                                            // print (log) detailed output
 
     if ((m_CEDetails.CEEnow || StellarMerger()) &&                                                                      // CEE or merger?
         !(OPTIONS->CHEMode() != CHE_MODE::NONE && HasTwoOf({STELLAR_TYPE::CHEMICALLY_HOMOGENEOUS}))

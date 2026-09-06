@@ -35,3 +35,5 @@ Following is a list of the BSE Detailed Output file record type numbers and corr
    Record was logged immediately following a merger after mass resolution
 #. PRE_STELLAR_TIMESTEP |br|
    Record was logged immediately prior to stellar timestep (i.e. the evolution of the constituent stars for a single timestep)
+#. POST_ABLATION |br|
+   Record was logged immediately following ablation mass loss
