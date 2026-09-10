@@ -2195,7 +2195,86 @@ double BaseBinaryStar::CalculateAblationOrbitalAngularMomentumLossGinzburgQuatae
 
 
 /**
- * Calculate mass loss due to ablation for the companion of a neutron star
+ * Calculate the mass-loss rate due to ablation of the companion
+ * of a neutron star.
+ *
+ * @return  Ablation mass-loss rate in Msol/yr
+ */
+double BaseBinaryStar::CalculateAblationMassLossRate() const {
+
+    // Ablation only applies to binaries containing a neutron star
+    if (!HasOneOf({ STELLAR_TYPE::NEUTRON_STAR })) return 0.0;
+
+    // Identify the neutron star and its companion
+    BinaryConstituentStar* neutronStar;
+    BinaryConstituentStar* companion;
+
+    if (m_Star1->IsOneOf({ STELLAR_TYPE::NEUTRON_STAR })) {
+        neutronStar = m_Star1;
+        companion = m_Star2;
+    }
+    else {
+        neutronStar = m_Star2;
+        companion = m_Star1;
+    }
+
+    // No ablation for Massless Remnants or NS-BH systems
+    if (companion->IsOneOf({
+        STELLAR_TYPE::MASSLESS_REMNANT,
+        STELLAR_TYPE::BLACK_HOLE
+    })) return 0.0;
+
+    // Require a valid bound orbit
+    if (!std::isfinite(m_SemiMajorAxis) ||
+        !std::isfinite(m_Eccentricity) ||
+        m_SemiMajorAxis <= 0.0 ||
+        m_Eccentricity > 1.0) {
+        return 0.0;
+    }
+
+    double NSMagneticField =
+        boost::get<double*>(
+            neutronStar->StellarPropertyValue(
+                STAR_PROPERTY::PULSAR_MAGNETIC_FIELD
+            )
+        );
+
+    double NSSpinPeriod =
+        boost::get<double*>(
+            neutronStar->StellarPropertyValue(
+                STAR_PROPERTY::PULSAR_SPIN_PERIOD
+            )
+        );
+
+    // Calculate ablation mass-loss rate using the selected prescription
+    switch (OPTIONS->AblationMassLossPrescription()) {
+
+        case ABLATION_MASS_LOSS_PRESCRIPTION::NONE:
+            return 0.0;
+
+        case ABLATION_MASS_LOSS_PRESCRIPTION::CLASSIC:
+            return CalculateAblationMassLossRateClassic(
+                companion->Mass(),
+                companion->Radius(),
+                neutronStar->Radius(),
+                NSMagneticField,
+                NSSpinPeriod,
+                m_SemiMajorAxis
+            );
+
+        default:
+            // TODO: throw error for unknown ablation mass-loss prescription
+            return 0.0;
+    }
+}
+
+
+
+/**
+ * Calculate and apply mass loss due to ablation of the companion
+ * of a neutron star over the given timestep. Updates the companion's
+ * mass-loss difference and calculates the resulting change in orbital
+ * separation according to the selected angular-momentum-loss prescription.
  *
  * @param   [IN]    p_Dt                    Timestep in Myr
  */
@@ -2208,21 +2287,16 @@ void BaseBinaryStar::CalculateAblationMassLoss(const double p_Dt) {
     if (!HasOneOf({ STELLAR_TYPE::NEUTRON_STAR })) return;
 
     // Identify the neutron star and its companion
-
     BinaryConstituentStar* neutronStar;
     BinaryConstituentStar* companion;
 
     if (m_Star1->IsOneOf({ STELLAR_TYPE::NEUTRON_STAR })) {
-
         neutronStar = m_Star1;
-        companion  = m_Star2;
-
+        companion = m_Star2;
     }
     else {
-
         neutronStar = m_Star2;
-        companion  = m_Star1;
-
+        companion = m_Star1;
     }
 
     // No ablation for Massless Remnants or NS-BH systems
@@ -2230,8 +2304,8 @@ void BaseBinaryStar::CalculateAblationMassLoss(const double p_Dt) {
         STELLAR_TYPE::MASSLESS_REMNANT,
         STELLAR_TYPE::BLACK_HOLE
     })) return;
-    
 
+    // Require a valid bound orbit
     if (!std::isfinite(m_SemiMajorAxis) ||
         !std::isfinite(m_Eccentricity) ||
         m_SemiMajorAxis <= 0.0 ||
@@ -2239,85 +2313,42 @@ void BaseBinaryStar::CalculateAblationMassLoss(const double p_Dt) {
         return;
     }
 
-    double NSMagneticField =
-        boost::get<double>(
-            neutronStar->StellarPropertyValue(
-                STAR_PROPERTY::PULSAR_MAGNETIC_FIELD
-            )
-        );
-
-    double NSSpinPeriod =
-            boost::get<double>(
-                neutronStar->StellarPropertyValue(
-                    STAR_PROPERTY::PULSAR_SPIN_PERIOD
-                )
-            );
-
-
-    // Calculate ablation mass loss
-    double mDotAblation = 0.0;
-
-    switch (OPTIONS->AblationMassLossPrescription()) {
-
-        case ABLATION_MASS_LOSS_PRESCRIPTION::NONE:
-
-            // No ablation mass loss
-            return;
-        case ABLATION_MASS_LOSS_PRESCRIPTION::CLASSIC:
-
-
-
-            // TODO: calculate classic ablation mass loss rate
-		        mDotAblation = CalculateAblationMassLossRateClassic(
-		            companion->Mass(),
-		            companion->Radius(),
-		            neutronStar->Radius(),
-		            NSMagneticField,
-		            NSSpinPeriod,
-		            m_SemiMajorAxis
-		        );
-
-            break;
-
-        default:
-
-            // TODO: throw error for unknown ablation mass loss prescription
-
-            break;
-    }
+    // Calculate ablation mass-loss rate using the selected prescription
+    double mDotAblation = CalculateAblationMassLossRate();
 
     // Calculate mass loss over timestep
-		double massLoss = std::max(0.0, mDotAblation * p_Dt * MYR_TO_YEAR);
-    // Ensure that the mass loss does not exceed the companion's current mass: AP: there might be a better way to handle this,
-    //  but for now we just limit the mass loss to the companion's current mass otherwise it will turn into a massless remnant
-        massLoss = std::min(massLoss, companion->Mass());
-    // Apply ablation mass loss to the companion
-    // Store the companion mass change.
-    // ResolveMassChanges() will apply it later.
+    double massLoss = std::max(
+        0.0,
+        mDotAblation * p_Dt * MYR_TO_YEAR
+    );
+
+    // Ensure mass loss does not exceed current companion mass
+    massLoss = std::min(massLoss, companion->Mass());
+
+    // Apply ablation mass loss to companion
     companion->SetMassLossDiff(
         companion->MassLossDiff() - massLoss
     );
-		double deltaJOrb = 0.0;
-		
-        double orbitalAngularVelocity = OrbitalAngularVelocity();
-        double orbitalPeriod = 2.0 * M_PI / orbitalAngularVelocity;
-		
-    // Calculate orbital response to ablation mass loss
+
+    // Calculate orbital angular momentum change
+    double deltaJOrb = 0.0;
+
+    double orbitalAngularVelocity = OrbitalAngularVelocity();
+    double orbitalPeriod = 2.0 * M_PI / orbitalAngularVelocity;
+
     switch (OPTIONS->AblationAngularMomentumLossPrescription()) {
 
         case ABLATION_ANGULAR_MOMENTUM_LOSS_PRESCRIPTION::KIEL_TAAM:
 
-
-				    deltaJOrb =
-				        CalculateAblationOrbitalAngularMomentumLossKielTaam(
-				            massLoss,
-				            companion->Mass(),
-				            m_Star1->Mass() + m_Star2->Mass(),
-				            m_SemiMajorAxis,
-				            orbitalPeriod,
-				            m_Eccentricity
-				        );
-
+            deltaJOrb =
+                CalculateAblationOrbitalAngularMomentumLossKielTaam(
+                    massLoss,
+                    companion->Mass(),
+                    m_Star1->Mass() + m_Star2->Mass(),
+                    m_SemiMajorAxis,
+                    orbitalPeriod,
+                    m_Eccentricity
+                );
             break;
 
         case ABLATION_ANGULAR_MOMENTUM_LOSS_PRESCRIPTION::GINZBURG_QUATAERT:
@@ -2330,16 +2361,14 @@ void BaseBinaryStar::CalculateAblationMassLoss(const double p_Dt) {
                     orbitalPeriod,
                     p_Dt
                 );
-
-            break;    
+            break;
 
         default:
-
             // TODO: throw error for unknown ablation angular momentum loss prescription
-
             break;
     }
-    // Current orbital angular momentum
+
+    // Calculate old orbital angular momentum
     double JOrbOld =
         CalculateOrbitalAngularMomentum(
             m_Star1->Mass(),
@@ -2348,12 +2377,10 @@ void BaseBinaryStar::CalculateAblationMassLoss(const double p_Dt) {
             m_Eccentricity
         );
 
-
-    // Orbital angular momentum after ablation
+    // Apply angular momentum change
     double JOrbNew = JOrbOld + deltaJOrb;
 
-
-    // Masses after ablation
+    // Calculate new stellar masses after ablation
     double m1New = m_Star1->Mass();
     double m2New = m_Star2->Mass();
 
@@ -2366,24 +2393,16 @@ void BaseBinaryStar::CalculateAblationMassLoss(const double p_Dt) {
 
     double totalMassNew = m1New + m2New;
 
-
-    // Derive the new semi-major axis from the prescribed new orbital
-    // angular momentum and the new component masses
+    // Calculate new semi-major axis from the new orbital angular momentum
     double aNew =
-    PPOW(JOrbNew, 2.0) /
-    (G_AU_Msol_yr * totalMassNew *
-     (1.0 - PPOW(m_Eccentricity, 2.0))) *
-    PPOW(totalMassNew / (m1New * m2New), 2.0);
+        PPOW(JOrbNew, 2.0) /
+        (G_AU_Msol_yr * totalMassNew *
+         (1.0 - PPOW(m_Eccentricity, 2.0))) *
+        PPOW(totalMassNew / (m1New * m2New), 2.0);
 
-
-    // Store the orbital change due specifically to ablation
+    // Store change in semi-major axis
     m_aAblationMassLossDiff = aNew - m_SemiMajorAxis;
-
-
-
 }
-
-
 
 
 
@@ -3557,7 +3576,26 @@ double BaseBinaryStar::ChooseTimestep(const double p_Factor) {
         if (OPTIONS->EmitGravitationalRadiation()) {                                        // emitting GWs?
             dt = std::min(dt, -1.0E-2 * m_SemiMajorAxis / m_DaDtGW);                        // yes - reduce timestep if necessary to ensure that the orbital separation does not change by more than ~1% per timestep due to GW emission
         }
-    
+
+        double mDotAblation = CalculateAblationMassLossRate();
+
+        if (mDotAblation > 0.0) {
+
+            BinaryConstituentStar* companion;
+
+            if (m_Star1->IsOneOf({ STELLAR_TYPE::NEUTRON_STAR })) {
+                companion = m_Star2;
+            }
+            else {
+                companion = m_Star1;
+            }
+
+            dt = std::min(
+                dt,
+                1.0E-2 * companion->Mass() / mDotAblation * YEAR_TO_MYR
+            );
+        }
+        
         if (OPTIONS->TidesPrescription() == TIDES_PRESCRIPTION::KAPIL2026) {                // tides prescription = KAPIL2026
                                                                                             // yes - need to adjust dt     
             double omega                  = OrbitalAngularVelocity();

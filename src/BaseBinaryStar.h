@@ -487,6 +487,7 @@ private:
                                                 const double p_OrbitalPeriod,
                                                 const double p_Dt) const;
 
+    double CalculateAblationMassLossRate() const;                                               
     void CalculateAblationMassLoss(const double p_Dt);
 
     void    InitialiseMassTransfer();
