@@ -601,8 +601,16 @@ void Options::OptionValues::Initialise() {
 
     // Pulsar ablation
 
-    m_AblationEfficiency                  = 0.1;
-    m_AblationCompanionMagneticField      = 70.0;
+    m_AblationMassLossPrescription.type                             = ABLATION_MASS_LOSS_PRESCRIPTION::NONE;
+
+    m_AblationMassLossPrescription.typeString                       = ABLATION_MASS_LOSS_PRESCRIPTION_LABEL.at(m_AblationMassLossPrescription.type);
+
+    m_AblationAngularMomentumLossPrescription.type                  = ABLATION_ANGULAR_MOMENTUM_LOSS_PRESCRIPTION::KIEL_TAAM;
+
+    m_AblationAngularMomentumLossPrescription.typeString            = ABLATION_ANGULAR_MOMENTUM_LOSS_PRESCRIPTION_LABEL.at(m_AblationAngularMomentumLossPrescription.type);
+
+    m_AblationEfficiency                                            = 0.1;
+    m_AblationCompanionMagneticField                                = 70.0;
 
     // Pulsar birth magnetic field distribution
     m_PulsarBirthMagneticFieldDistribution.type                     = PULSAR_BIRTH_MAGNETIC_FIELD_DISTRIBUTION::LOGNORMAL;
