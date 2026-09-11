@@ -2233,14 +2233,14 @@ double BaseBinaryStar::CalculateAblationMassLossRate() const {
     }
 
     double NSMagneticField =
-        boost::get<double*>(
+        boost::get<double>(
             neutronStar->StellarPropertyValue(
                 STAR_PROPERTY::PULSAR_MAGNETIC_FIELD
             )
         );
 
     double NSSpinPeriod =
-        boost::get<double*>(
+        boost::get<double>(
             neutronStar->StellarPropertyValue(
                 STAR_PROPERTY::PULSAR_SPIN_PERIOD
             )
@@ -2322,7 +2322,7 @@ void BaseBinaryStar::CalculateAblationMassLoss(const double p_Dt) {
         mDotAblation * p_Dt * MYR_TO_YEAR
     );
 
-    // Ensure mass loss does not exceed current companion mass
+    // Ensure mass loss does not exceed current companion mass; AP: might be redundant now with the ChooseTimestep condition?
     massLoss = std::min(massLoss, companion->Mass());
 
     // Apply ablation mass loss to companion
@@ -3577,9 +3577,9 @@ double BaseBinaryStar::ChooseTimestep(const double p_Factor) {
             dt = std::min(dt, -1.0E-2 * m_SemiMajorAxis / m_DaDtGW);                        // yes - reduce timestep if necessary to ensure that the orbital separation does not change by more than ~1% per timestep due to GW emission
         }
 
-        double mDotAblation = CalculateAblationMassLossRate();
+        double mDotAblation = CalculateAblationMassLossRate();              
 
-        if (mDotAblation > 0.0) {
+        if (mDotAblation > 0.0) {                                                           // ablation mass loss rate > 0?
 
             BinaryConstituentStar* companion;
 
@@ -3592,7 +3592,7 @@ double BaseBinaryStar::ChooseTimestep(const double p_Factor) {
 
             dt = std::min(
                 dt,
-                1.0E-2 * companion->Mass() / mDotAblation * YEAR_TO_MYR
+                1.0E-2 * companion->Mass() / mDotAblation * YEAR_TO_MYR                     // reduce timestep if necessary to ensure that the companion star does not lose more than ~1% of its mass per timestep due to ablation
             );
         }
         
