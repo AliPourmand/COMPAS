@@ -605,11 +605,12 @@ void Options::OptionValues::Initialise() {
 
     m_AblationMassLossPrescription.typeString                       = ABLATION_MASS_LOSS_PRESCRIPTION_LABEL.at(m_AblationMassLossPrescription.type);
 
-    m_AblationAngularMomentumLossPrescription.type                  = ABLATION_ANGULAR_MOMENTUM_LOSS_PRESCRIPTION::KIEL_TAAM;
+    m_AblationAngularMomentumLossPrescription.type                  = ABLATION_ANGULAR_MOMENTUM_LOSS_PRESCRIPTION::NONE;
 
     m_AblationAngularMomentumLossPrescription.typeString            = ABLATION_ANGULAR_MOMENTUM_LOSS_PRESCRIPTION_LABEL.at(m_AblationAngularMomentumLossPrescription.type);
 
     m_AblationEfficiency                                            = 0.1;
+    m_AblationSpinDownToGammaRays                                   = 0.1;
     m_AblationCompanionMagneticField                                = 70.0;
 
     // Pulsar birth magnetic field distribution
@@ -1157,6 +1158,11 @@ bool Options::AddOptions(OptionValues *p_Options, po::options_description *p_Opt
             "ablation-companion-magnetic-field",
             po::value<double>(&p_Options->m_AblationCompanionMagneticField)->default_value(p_Options->m_AblationCompanionMagneticField),
             ("Companion magnetic field for ablation in G (default = " + std::to_string(p_Options->m_AblationCompanionMagneticField) + ")").c_str()
+        )
+        (
+            "ablation-spin-down-to-gamma-rays",
+            po::value<double>(&p_Options->m_AblationSpinDownToGammaRays)->default_value(p_Options->m_AblationSpinDownToGammaRays),
+            ("Fraction of spin-down luminosity converted to gamma rays (default = " + std::to_string(p_Options->m_AblationSpinDownToGammaRays) + ")").c_str()
         )
         (
             "common-envelope-alpha",                                       

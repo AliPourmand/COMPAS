@@ -467,25 +467,34 @@ private:
     
     void    CalculateWindsMassLoss(double p_Dt);
 
-    double CalculateAblationMassLossRateClassic(const double p_CompanionMass,
-                                                const double p_CompanionRadius,
-                                                const double p_NSRadius,
-                                                const double p_NSMagneticField,
-                                                const double p_NSSpinPeriod,
-                                                const double p_SemiMajorAxis) const;
+    double CalculateAblationMassLossRateConstantEfficiency(const double p_CompanionMass,
+                                                           const double p_CompanionRadius,
+                                                           const double p_MomentOfInertia,
+                                                           const double p_NSSpinDotPeriod,
+                                                           const double p_NSSpinPeriod,
+                                                           const double p_SemiMajorAxis_rsol) const;
 
-    double CalculateAblationOrbitalAngularMomentumLossKielTaam(const double p_DeltaMassAblation,
-                                                const double p_CompanionMass,
-                                                const double p_TotalMass,
-                                                const double p_SemiMajorAxis,
-                                                const double p_OrbitalPeriod,
-                                                const double p_Eccentricity) const;
+    double CalculateAblationMassLossRateGinzburgQuataertEfficiency(const double p_CompanionMass,
+                                                           const double p_CompanionRadius,
+                                                           const double p_NSMomentofInertia,
+                                                           const double p_NSSpinDotPeriod,
+                                                           const double p_NSSpinPeriod,
+                                                           const double p_SemiMajorAxis_rsol) const;
 
-    double CalculateAblationOrbitalAngularMomentumLossGinzburgQuataert(const double p_CompanionRadius,
-                                                const double p_CompanionMagneticField,
-                                                const double p_MdotAblation,
-                                                const double p_OrbitalPeriod,
-                                                const double p_Dt) const;
+    double CalculateAblationOrbitalAngularMomentumLossWind(const double p_DeltaMassAblation,
+                                                           const double p_CompanionMass,
+                                                           const double p_TotalMass,
+                                                           const double p_SemiMajorAxis,
+                                                           const double p_OrbitalPeriod,
+                                                           const double p_Eccentricity) const;
+
+    double CalculateAblationOrbitalAngularMomentumLossMagnetic(const double p_CompanionRadius,
+                                                           const double p_CompanionMagneticField,
+                                                           const double p_MdotAblation,
+                                                           const double p_OrbitalPeriod,
+                                                           const double p_Dt) const;
+
+
 
     double CalculateAblationMassLossRate() const;                                               
     void CalculateAblationMassLoss(const double p_Dt);

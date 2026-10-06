@@ -1049,6 +1049,7 @@ public:
             ENUM_OPT<ABLATION_ANGULAR_MOMENTUM_LOSS_PRESCRIPTION>    m_AblationAngularMomentumLossPrescription;            // Which ablation angular-momentum-loss prescription
 
             double m_AblationEfficiency;                              // Ablation efficiency
+            double m_AblationSpinDownToGammaRays;                     // Fraction of spin-down luminosity that get converted to gamma-ray luminosity
             double m_AblationCompanionMagneticField;                  // Companion magnetic field in G
 
             // Mass transfer options
@@ -1421,6 +1422,7 @@ public:
     ABLATION_ANGULAR_MOMENTUM_LOSS_PRESCRIPTION AblationAngularMomentumLossPrescription() const                         { return OPT_VALUE("ablation-angular-momentum-loss-prescription", m_AblationAngularMomentumLossPrescription.type, true); }
     
     double                                      AblationEfficiency() const                                              { return OPT_VALUE("ablation-efficiency", m_AblationEfficiency, true); }
+    double                                      AblationSpinDownToGammaRays() const                                     { return OPT_VALUE("ablation-spin-down-to-gamma-rays", m_AblationSpinDownToGammaRays, true); }
     double                                      AblationCompanionMagneticField() const                                  { return OPT_VALUE("ablation-companion-magnetic-field", m_AblationCompanionMagneticField, true); }
 
     ADD_OPTIONS_TO_SYSPARMS                     AddOptionsToSysParms() const                                            { return m_CmdLine.optionValues.m_AddOptionsToSysParms.type; }
