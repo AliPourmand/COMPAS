@@ -2153,12 +2153,12 @@ double BaseBinaryStar::CalculateAblationMassLossRateGinzburgQuataertEfficiency(
         * PPOW(orbitalPeriodHours, -2.0 / 9.0)
         * PPOW(Lgamma, 1.0 / 3.0);
 
-    // std::cout << "GQ: Mcomp = " << p_CompanionMass
-    //         << " Msol, Porb = " << orbitalPeriodHours
-    //         << " hr, Lspindown = " << LspinDown
-    //         << " Lsol, Lgamma = " << Lgamma
-    //         << " Lsol, eta = " << eta
-    //         << std::endl;
+    std::cout << "GQ: Mcomp = " << p_CompanionMass
+            << " Msol, Porb = " << orbitalPeriodHours
+            << " hr, Lspindown = " << LspinDown
+            << " Lsol, Lgamma = " << Lgamma
+            << " Lsol, eta = " << eta
+            << std::endl;
 
     double Mdot =
         eta
@@ -2357,16 +2357,16 @@ double BaseBinaryStar::CalculateAblationMassLossRate() const {
                 SemiMajorAxis_rsol
             );
 
-            // std::cout << "\n========== ABLATION Mdot DEBUG ==========\n";
-            // std::cout << "Prescription = CONSTANT_EFFICIENCY\n";
-            // std::cout << "Mcomp  (Msol)      = " << companion->Mass() << "\n";
-            // std::cout << "Rcomp  (rsol)      = " << companion->Radius() << "\n";
-            // std::cout << "INS    (g cm^2)    = " << NSMomentOfInertia << "\n";
-            // std::cout << "Pdot   (s/s)       = " << NSSpinDotPeriod << "\n";
-            // std::cout << "Pspin  (s)         = " << NSSpinPeriod << "\n";
-            // std::cout << "a  (rsol)          = " << SemiMajorAxis_rsol << "\n";
-            // std::cout << "Mdot   (Msol/yr)   = " << mDot << "\n";
-            // std::cout << "=========================================\n";
+            std::cout << "\n========== ABLATION Mdot DEBUG ==========\n";
+            std::cout << "Prescription = CONSTANT_EFFICIENCY\n";
+            std::cout << "Mcomp  (Msol)      = " << companion->Mass() << "\n";
+            std::cout << "Rcomp  (rsol)      = " << companion->Radius() << "\n";
+            std::cout << "INS    (g cm^2)    = " << NSMomentOfInertia << "\n";
+            std::cout << "Pdot   (s/s)       = " << NSSpinDotPeriod << "\n";
+            std::cout << "Pspin  (s)         = " << NSSpinPeriod << "\n";
+            std::cout << "a  (rsol)          = " << SemiMajorAxis_rsol << "\n";
+            std::cout << "Mdot   (Msol/yr)   = " << mDot << "\n";
+            std::cout << "=========================================\n";
 
             return mDot;
         }
@@ -2382,16 +2382,16 @@ double BaseBinaryStar::CalculateAblationMassLossRate() const {
                 SemiMajorAxis_rsol
             );
 
-            // std::cout << "\n========== ABLATION Mdot DEBUG ==========\n";
-            // std::cout << "Prescription = GINZBURG_QUATAERT\n";
-            // std::cout << "Mcomp  (Msol)      = " << companion->Mass() << "\n";
-            // std::cout << "Rcomp  (rsol)      = " << companion->Radius() << "\n";
-            // std::cout << "INS    (g cm^2)    = " << NSMomentOfInertia << "\n";
-            // std::cout << "Pdot   (s/s)       = " << NSSpinDotPeriod << "\n";
-            // std::cout << "Pspin  (s)          = " << NSSpinPeriod << "\n";
-            // std::cout << "a  (rsol)          = " << SemiMajorAxis_rsol << "\n";
-            // std::cout << "Mdot   (Msol/yr)   = " << mDot << "\n";
-            // std::cout << "=========================================\n";
+            std::cout << "\n========== ABLATION Mdot DEBUG ==========\n";
+            std::cout << "Prescription = GINZBURG_QUATAERT\n";
+            std::cout << "Mcomp  (Msol)      = " << companion->Mass() << "\n";
+            std::cout << "Rcomp  (rsol)      = " << companion->Radius() << "\n";
+            std::cout << "INS    (g cm^2)    = " << NSMomentOfInertia << "\n";
+            std::cout << "Pdot   (s/s)       = " << NSSpinDotPeriod << "\n";
+            std::cout << "Pspin  (s)          = " << NSSpinPeriod << "\n";
+            std::cout << "a  (rsol)          = " << SemiMajorAxis_rsol << "\n";
+            std::cout << "Mdot   (Msol/yr)   = " << mDot << "\n";
+            std::cout << "=========================================\n";
 
             return mDot;
         }
@@ -2539,18 +2539,18 @@ void BaseBinaryStar::CalculateAblationMassLoss(const double p_Dt) {
     // Store change in semi-major axis
     m_aAblationMassLossDiff = aNew - m_SemiMajorAxis;
 
-    // std::cout << "ABLATION: "
-    //       << "Mdot (Msol/yr)= " << mDotAblation
-    //       << " dt = " << p_Dt << " Myr"
-    //       << " implied dt = " << massLoss / mDotAblation / 1.0E6 << " Myr"
-    //       << " massLoss (Msol) = " << massLoss
-    //       << " Jold (Msol*AU^2/yr) = " << JOrbOld
-    //       << " dJ (Msol*AU^2/yr) = " << deltaJOrb
-    //       << " Jnew (Msol*AU^2/yr) = " << JOrbNew
-    //       << " aOld (AU) = " << m_SemiMajorAxis
-    //       << " aNew (AU) = " << aNew
-    //       << " e = " << m_Eccentricity
-    //       << std::endl;
+    std::cout << "ABLATION: "
+          << "Mdot (Msol/yr)= " << mDotAblation
+          << " dt = " << p_Dt << " Myr"
+          << " implied dt = " << massLoss / mDotAblation / 1.0E6 << " Myr"
+          << " massLoss (Msol) = " << massLoss
+          << " Jold (Msol*AU^2/yr) = " << JOrbOld
+          << " dJ (Msol*AU^2/yr) = " << deltaJOrb
+          << " Jnew (Msol*AU^2/yr) = " << JOrbNew
+          << " aOld (AU) = " << m_SemiMajorAxis
+          << " aNew (AU) = " << aNew
+          << " e = " << m_Eccentricity
+          << std::endl;
 
 }
 
